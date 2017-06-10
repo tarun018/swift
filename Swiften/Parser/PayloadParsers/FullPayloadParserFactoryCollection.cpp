@@ -51,6 +51,7 @@
 #include <Swiften/Parser/PayloadParsers/MAMFinParser.h>
 #include <Swiften/Parser/PayloadParsers/MAMQueryParser.h>
 #include <Swiften/Parser/PayloadParsers/MAMResultParser.h>
+#include <Swiften/Parser/PayloadParsers/MIXJidParserFactory.h>
 #include <Swiften/Parser/PayloadParsers/MUCAdminPayloadParser.h>
 #include <Swiften/Parser/PayloadParsers/MUCDestroyPayloadParser.h>
 #include <Swiften/Parser/PayloadParsers/MUCInvitationPayloadParser.h>
@@ -161,6 +162,7 @@ FullPayloadParserFactoryCollection::FullPayloadParserFactoryCollection() {
     factories_.push_back(std::make_shared<GenericPayloadParserFactory2<MAMResultParser> >("result", "urn:xmpp:mam:0", this));
     factories_.push_back(std::make_shared<GenericPayloadParserFactory<MAMQueryParser> >("query", "urn:xmpp:mam:0"));
     factories_.push_back(std::make_shared<GenericPayloadParserFactory<MAMFinParser> >("fin", "urn:xmpp:mam:0"));
+    factories_.push_back(std::make_shared<MIXJidParserFactory>());
     factories_.push_back(std::make_shared<GenericPayloadParserFactory2<IsodeIQDelegationParser> >("delegate", "http://isode.com/iq_delegation", this));
     factories_.push_back(std::make_shared<GenericPayloadParserFactory<CarbonsEnableParser> >("enable", "urn:xmpp:carbons:2"));
     factories_.push_back(std::make_shared<GenericPayloadParserFactory<CarbonsDisableParser> >("disable", "urn:xmpp:carbons:2"));
