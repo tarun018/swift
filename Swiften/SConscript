@@ -213,7 +213,6 @@ if env["SCONS_STAGE"] == "build" :
             "Serializer/PayloadSerializers/MIXUserPreferenceSerializer.cpp",
             "Serializer/PayloadSerializers/MIXLeaveSerializer.cpp",
             "Serializer/PayloadSerializers/MIXJoinSerializer.cpp",
-            "Serializer/PayloadSerializers/MIXSubscribeSerializer.cpp",
             "Serializer/PayloadSerializers/MUCPayloadSerializer.cpp",
             "Serializer/PayloadSerializers/MUCUserPayloadSerializer.cpp",
             "Serializer/PayloadSerializers/MUCAdminPayloadSerializer.cpp",

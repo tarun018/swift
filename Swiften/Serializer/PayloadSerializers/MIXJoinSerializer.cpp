@@ -7,8 +7,8 @@
 #include <Swiften/Serializer/PayloadSerializers/MIXJoinSerializer.h>
 
 #include <memory>
+#include <string>
 
-#include <Swiften/Serializer/PayloadSerializers/MIXSubscribeSerializer.h>
 #include <Swiften/Serializer/PayloadSerializers/FormSerializer.h>
 #include <Swiften/Serializer/XML/XMLElement.h>
 #include <Swiften/Serializer/XML/XMLRawTextNode.h>
@@ -32,9 +32,16 @@ std::string MIXJoinSerializer::serializePayload(std::shared_ptr<MIXJoin> payload
     if (payload->getJID()) {
         element.setAttribute("jid", *payload->getJID());
     }
-    for (const auto& item : payload->getSubscriptions()) {
-        element.addNode(std::make_shared<XMLRawTextNode>(MIXSubscribeSerializer().serialize(item)));
+    auto subscriptionData = payload->getSubscriptions();
+    std::vector<std::string> subscriptions(subscriptionData.begin(), subscriptionData.end());
+    std::sort(subscriptions.begin(), subscriptions.end());
+
+    for (const auto& item : subscriptions) {
+        std::shared_ptr<XMLElement> subscribeElement = std::make_shared<XMLElement>("subscribe");
+        subscribeElement->setAttribute("node", item);
+        element.addNode(subscribeElement);
     }
+
     if (payload->getForm()) {
         element.addNode(std::make_shared<XMLRawTextNode>(FormSerializer().serialize(payload->getForm())));
     }

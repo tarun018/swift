@@ -8,12 +8,12 @@
 
 #include <memory>
 #include <string>
+#include <unordered_set>
 
 #include <boost/optional.hpp>
 
 #include <Swiften/Base/API.h>
 #include <Swiften/Elements/Payload.h>
-#include <Swiften/Elements/MIXSubscribe.h>
 #include <Swiften/Elements/Form.h>
 #include <Swiften/JID/JID.h>
 
@@ -43,16 +43,20 @@ namespace Swift {
                 jid_ = jid;
             }
 
-            const std::vector<MIXSubscribe::ref>& getSubscriptions() const {
+            const std::unordered_set<std::string>& getSubscriptions() const {
                 return subscribeItems_;
             }
 
-            void setSubscriptions(const std::vector<MIXSubscribe::ref>& value) {
+            void setSubscriptions(const std::unordered_set<std::string>& value) {
                 subscribeItems_ = value ;
             }
 
-            void addSubscription(MIXSubscribe::ref value) {
-                subscribeItems_.push_back(value);
+            void addSubscription(std::string value) {
+                subscribeItems_.insert(value);
+            }
+
+            bool hasSubscription(std::string value) {
+                return std::find(subscribeItems_.begin(), subscribeItems_.end(), value) != subscribeItems_.end();
             }
 
             void setForm(std::shared_ptr<Form> form) {
@@ -66,7 +70,7 @@ namespace Swift {
         private:
             boost::optional<JID> jid_;
             boost::optional<JID> channel_;
-            std::vector<MIXSubscribe::ref> subscribeItems_;
+            std::unordered_set<std::string> subscribeItems_;
             std::shared_ptr<Form> form_;
             // FIXME: MIXInvitation to be implemented. boost::optional<MIXInvitation> invitation_;
     };
