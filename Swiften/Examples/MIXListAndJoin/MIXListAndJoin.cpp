@@ -13,6 +13,9 @@
 #include <Swiften/Elements/DiscoInfo.h>
 #include <Swiften/Elements/ErrorPayload.h>
 #include <Swiften/Elements/MIXParticipant.h>
+#include <Swiften/Elements/PubSub.h>
+#include <Swiften/Elements/PubSubItems.h>
+#include <Swiften/Elements/ErrorPayload.h>
 #include <Swiften/Client/Client.h>
 #include <Swiften/Client/ClientOptions.h>
 #include <Swiften/Client/ClientXMLTracer.h>
@@ -42,6 +45,12 @@ static JID mixServiceDomain;
 static std::unordered_set<std::string> supportedNodes;
 static MIXRegistry* mixRegistry_;
 
+static void handleParticipantsReceived(std::shared_ptr<PubSub> payload, ErrorPayload::ref /*error*/) {
+    if (payload) {
+        return;
+    }
+}
+
 static void handleChannelJoined(const JID& jid) {
     // Successfully joined the channel.
     assert(mixRegistry_);
@@ -55,9 +64,19 @@ static void handleChannelJoined(const JID& jid) {
     mix = mixRegistry_->getMIXInstance(jid);
 
     // Can perform other functions with MIXImpl object: mix.
+    auto itemsPayload = std::make_shared<PubSubItems>();
+    itemsPayload->setNode(MIX::ParticipantsNode);
+
+    auto pubSubPayload = std::make_shared<PubSub>();
+    pubSubPayload->setPayload(itemsPayload);
+
+    auto request = std::make_shared<GenericRequest<PubSub>>(IQ::Get, mixChannelJID, pubSubPayload, client->getIQRouter());
+    request->onResponse.connect(&handleParticipantsReceived);
+    request->send();
+
     // Send a message to channel.
 
-    mix->sendMessage("Hello I am here");
+    // mix->sendMessage("Hello I am here");
 
 
     // Finally leave channel.
@@ -168,7 +187,7 @@ static void handleDisconnected(const boost::optional<ClientError>&) {
  */
 int main(int argc, char* argv[]) {
     int ret = 0;
-    Log::setLogLevel(Log::Severity::warning);
+    Log::setLogLevel(Log::Severity::debug);
 
     if (argc != 4) {
         std::cout << "Usage: ./" << argv[0] << " <jid> <password> <mix_service_domain>" << std::endl;
@@ -179,7 +198,7 @@ int main(int argc, char* argv[]) {
         client = std::make_shared<Client>(JID(argv[1]), string(argv[2]), &networkFactories);
         client->setAlwaysTrustCertificates();
 
-        //ClientXMLTracer* tracer = new ClientXMLTracer(client.get());
+        ClientXMLTracer* tracer = new ClientXMLTracer(client.get());
         ClientOptions options;
         options.allowPLAINWithoutTLS = true;
 

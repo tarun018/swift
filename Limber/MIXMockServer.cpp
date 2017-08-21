@@ -22,6 +22,7 @@
 #include <Swiften/Elements/DiscoItems.h>
 #include <Swiften/Elements/MIXJoin.h>
 #include <Swiften/Elements/MIXLeave.h>
+#include <Swiften/Elements/PubSub.h>
 #include <Swiften/Elements/RosterPayload.h>
 #include <Swiften/Elements/RosterItemPayload.h>
 #include <Swiften/Elements/Stanza.h>
@@ -115,6 +116,27 @@ class Server {
                 return;
             }
 
+            //If request comes to particular channel supported by service.
+            if (stanza->getTo().isValid() && mixChannelRegistry_->hasMIXChannel(stanza->getTo())) {
+                if (iq->getPayload<PubSub>()) {
+                    SWIFT_LOG(debug) << "Received PUBSUB" << std::endl;
+                    return;
+                }
+                else if (iq->getPayload<DiscoItems>()->getNode() == "mix") {
+                    SWIFT_LOG(debug) << "Query: Channel Nodes Supported" << std::endl;
+                    auto responsePayload = std::make_shared<DiscoItems>();
+                    responsePayload->addItem(DiscoItems::Item(MIX::ParticipantsNode, JID(iq->getTo())));
+                    responsePayload->addItem(DiscoItems::Item(MIX::MessagesNode, JID(iq->getTo())));
+                    responsePayload->addItem(DiscoItems::Item(MIX::PresenceNode, JID(iq->getTo())));
+                    responsePayload->addItem(DiscoItems::Item(MIX::JIDMapNode, JID(iq->getTo())));
+                    session->sendElement(IQ::createResult(iq->getFrom(), iq->getTo(), iq->getID(), responsePayload));
+                }
+                else {
+                    session->sendElement(IQ::createError(iq->getFrom(), iq->getID(), ErrorPayload::BadRequest, ErrorPayload::Cancel));
+                }
+                return;
+            }
+
             //If request comes to domain service
             if (stanza->getTo().isValid() && stanza->getTo() == session->getLocalJID()) {
                 if (iq->getPayload<DiscoItems>()) {
@@ -190,23 +212,6 @@ class Server {
                 }
                 return;
             }
-
-            //If request comes to particular channel supported by service.
-            if (stanza->getTo().isValid() && mixChannelRegistry_->hasMIXChannel(stanza->getTo())) {
-                if (iq->getPayload<DiscoItems>()->getNode() == "mix") {
-                    SWIFT_LOG(debug) << "Query: Channel Nodes Supported" << std::endl;
-                    auto responsePayload = std::make_shared<DiscoItems>();
-                    responsePayload->addItem(DiscoItems::Item(MIX::ParticipantsNode, JID(iq->getTo())));
-                    responsePayload->addItem(DiscoItems::Item(MIX::MessagesNode, JID(iq->getTo())));
-                    responsePayload->addItem(DiscoItems::Item(MIX::PresenceNode, JID(iq->getTo())));
-                    responsePayload->addItem(DiscoItems::Item(MIX::JIDMapNode, JID(iq->getTo())));
-                    session->sendElement(IQ::createResult(iq->getFrom(), iq->getTo(), iq->getID(), responsePayload));
-                }
-                else {
-                    session->sendElement(IQ::createError(iq->getFrom(), iq->getID(), ErrorPayload::BadRequest, ErrorPayload::Cancel));
-                }
-                return;
-            }
         }
 
         MIXJoin::ref createJoinResult(const std::unordered_set<std::string>& nodes) {
@@ -243,10 +248,13 @@ class Server {
 
         using RosterMap = std::map<JID, std::shared_ptr<XMPPRosterImpl>>;
         RosterMap rosterMap_;
+
+        using ParticipantMap = std::map<JID, std::unordered_set<std::string>>;
+        ParticipantMap participantMap_;
 };
 
 int main() {
-    //Log::setLogLevel(Log::Severity::debug);
+    Log::setLogLevel(Log::Severity::debug);
 
     SimpleEventLoop eventLoop;
     SimpleUserRegistry userRegistry;
