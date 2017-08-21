@@ -30,7 +30,7 @@ namespace Swift {
             using MIXInstanceMap = std::map<JID, MIXImpl::ref>;
 
         public:
-            MIXRegistry(const JID& ownJID, IQRouter* iqRouter, XMPPRoster* xmppRoster);
+            MIXRegistry(const JID& ownJID, IQRouter* iqRouter, XMPPRoster* xmppRoster, StanzaChannel* stanzaChannel);
 
             ~MIXRegistry();
 
@@ -74,6 +74,7 @@ namespace Swift {
             JID ownJID_;
             IQRouter* iqRouter_;
             XMPPRoster* xmppRoster_;
+            StanzaChannel* stanzaChannel_;
             MIXInstanceMap entries_;
     };
 }
