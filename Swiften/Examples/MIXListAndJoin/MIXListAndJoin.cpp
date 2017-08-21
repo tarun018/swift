@@ -55,6 +55,10 @@ static void handleChannelJoined(const JID& jid) {
     mix = mixRegistry_->getMIXInstance(jid);
 
     // Can perform other functions with MIXImpl object: mix.
+    // Send a message to channel.
+
+    mix->sendMessage("Hello I am here");
+
 
     // Finally leave channel.
     // This is commented to check the sync between different users using different clients(resources) to connect.

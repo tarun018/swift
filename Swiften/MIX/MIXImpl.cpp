@@ -13,7 +13,7 @@
 
 namespace Swift {
 
-MIXImpl::MIXImpl(const JID& ownJID, const JID& channelJID, IQRouter* iqRouter) : ownJID_(ownJID), channelJID_(channelJID), iqRouter_(iqRouter) {
+MIXImpl::MIXImpl(const JID& ownJID, const JID& channelJID, IQRouter* iqRouter, StanzaChannel* stanzaChannel) : ownJID_(ownJID), channelJID_(channelJID), iqRouter_(iqRouter), stanzaChannel_(stanzaChannel) {
 
 }
 
@@ -60,4 +60,18 @@ void MIXImpl::updatePreferences(Form::ref form) {
     request->send();
 }
 
+void MIXImpl::sendMessage(const std::string &body) {
+    auto message = std::make_shared<Message>();
+    message->setTo(channelJID_);
+    message->setType(Message::Groupchat);
+    message->setBody(body);
+    message->setID(idGenerator.generateID());
+    stanzaChannel_->sendMessage(message);
+}
+
+void MIXImpl::handleIncomingMessage(Message::ref message) {
+    if (message) {
+        onMessageReceived(message);
+    }
+}
 }
